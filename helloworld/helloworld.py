@@ -8,7 +8,7 @@ mouse_image_filename = 'fugu.png'
 #导入pygame库
 import pygame
 #导入一些常用的函数和常量
-from pygame.locals import *
+from pygame.locals import *          #'from pygame.locals import *'used;unable to detect undefined names
 #向sys模块借一个exit函数来退出程序
 from sys import exit
 
