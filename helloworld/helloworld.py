@@ -3,7 +3,7 @@
 
 #指定图像文件名称
 background_image_filename = 'sushiplate.jpg'
-mouse_image_filename = 'fugu.jpg'
+mouse_image_filename = 'fugu.png'
 
 #导入pygame库
 import pygame
