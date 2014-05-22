@@ -14,7 +14,7 @@ def create_scales(height):
     green_scale_surface = pygame.surface.Surface((640, height))
     blue_scale_surface = pygame.surface.Surface((640, height))
     for x in range(640):
-        c = int((x / 640.) * 255.)        #?.
+        c = int((x / 639.) * 255.)        #?.
         red  = (c, 0, 0)
         green = (0, c, 0)
         blue = (0, 0, c)
