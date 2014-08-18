@@ -42,7 +42,7 @@ class StateMachine(object):
     def set_state(self, new_state_name):
         if self.active_state is not None:
             self.active_state.exit_actions()
-        self.active_state = self,states[new_state_name]
+        self.active_state = self.states[new_state_name]
         self.active_state.entry_actions()
 
 class World(object):
@@ -56,7 +56,7 @@ class World(object):
 
     def add_entity(self, entity):
         #增加一个新的实体
-        self.entities[self,entity_id] = entity
+        self.entities[self.entity_id] = entity
         entity.id = self.entity_id
         self.entity_id += 1
 
@@ -99,7 +99,7 @@ class GameEntity(object):
         self.name = name
         self.image = image
         self.location = Vector2(0, 0)
-        self.desitination = Vector2(0, 0)
+        self.destination = Vector2(0, 0)
         self.speed = 0.
         self.brain = StateMachine()
         self.id = 0
@@ -112,9 +112,9 @@ class GameEntity(object):
     def process(self, time_passed):
         self.brain.think()
         if self.speed > 0. and self.location != self.destination:
-            vec_to_destinaton = self.destination - self.location
-            distance_to_destination = vec_to_destinaton.get_length()
-            heading = vec_to_destinaton.get_normalized()
+            vec_to_destination = self.destination - self.location
+            distance_to_destination = vec_to_destination.get_length()
+            heading = vec_to_destination.get_normalized()
             travel_distance = min(distance_to_destination, time_passed * self.speed)
             self.location += travel_distance * heading
 
@@ -122,7 +122,7 @@ class Leaf(GameEntity):
     def __init__(self, world, image):
         GameEntity.__init__(self, world, "leaf", image)
 
-class spider(GameEntity):
+class Spider(GameEntity):
     def __init__(self, world, image):
         GameEntity.__init__(self, world, "spider", image)
         self.dead_image = pygame.transform.flip(image, 0, 1)
@@ -138,12 +138,12 @@ class spider(GameEntity):
 
     def render(self, surface):
         GameEntity.render(self, surface)
-        #x, y = self.location
-        #w, h = self.image.get_size()
+        x, y = self.location
+        w, h = self.image.get_size()
         bar_x = x - 12
         bar_y = y + h / 2
         surface.fill((255, 0, 0), (bar_x, bar_y, 25, 4))
-        surface.fill((0, 255, 0), (bar_x, bar_y. self.health, 4))
+        surface.fill((0, 255, 0), (bar_x, bar_y, self.health, 4))
 
     def process(self, time_passed):
         x, y = self.location
@@ -173,6 +173,14 @@ class Ant(GameEntity):
             x, y = self.location
             w, h = self.carry_image.get_size()
             surface.blit(self.carry_image, (x - w, y - h / 2))
+            self.carry_image = None
+
+    def render(self, surface):
+        GameEntity.render(self, surface)
+        if self.carry_image:
+            x, y = self.location
+            w, h = self.carry_image.get_size()
+            surface.blit(self.carry_image, (x - w, y - h / 2))
 
 class AntStateExploring(State):
     def __init__(self, ant):
@@ -185,10 +193,10 @@ class AntStateExploring(State):
 
     def do_actions(self):
         if randint(1, 20) == 1:
-            self.random_destinaton()
+            self.random_destination()
 
     def check_conditions(self):
-        leaf = self.ant.world.get_close_entity("Leaf", self.ant.location)
+        leaf = self.ant.world.get_close_entity("leaf", self.ant.location)
         if leaf is not None:
             self.ant.leaf_id = leaf.id
             return "seeking"
@@ -197,11 +205,11 @@ class AntStateExploring(State):
             if self.ant.location.get_distance_to(spider.location) < 100.:
                 self.ant.spider_id = spider.id
                 return "hunting"
-            return None
+        return None
 
     def entry_actions(self):
         self.ant.speed = 120. + randint(-30, 30)
-        self.random_destonation()
+        self.random_destination()
 
 class AntStateSeeking(State):
     def __init__(self, ant):
@@ -220,10 +228,10 @@ class AntStateSeeking(State):
         return None
 
     def entry_actions(self):
-       leaf = self.ant.world.get(self.ant.leaf_id)
-       if leaf is not None:
-           self.ant.destination = leaf.location
-           self.ant.speed = 160. + randint(-20, 20)
+        leaf = self.ant.world.get(self.ant.leaf_id)
+        if leaf is not None:
+            self.ant.destination = leaf.location
+            self.ant.speed = 160. + randint(-20, 20)
 
 class AntStateDelivering(State):
     def __init__(self, ant):
@@ -240,7 +248,7 @@ class AntStateDelivering(State):
     def entry_actions(self):
         self.ant.speed = 60.
         random_offset = Vector2(randint(-20, 20), randint(-20, 20))
-        self.ant.destinaton = Vector2(*NEST_POSITION) + random_offset
+        self.ant.destination = Vector2(*NEST_POSITION) + random_offset
 
 class AntStateHunting(State):
     def __init__(self, ant):
@@ -294,7 +302,7 @@ def run():
 
     while True:
         for event in pygame.event.get():
-            if event.tpye == QUIT:
+            if event.type == QUIT:
                 return
         time_passed = clock.tick(30)
 
